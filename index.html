@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>实时钟表</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        
+        .wra {
+            width: 310px;
+            height: 310px;
+            border: 2px solid #111;
+            position: absolute;
+            left: 298px;
+            top: 98px;
+            background: #fff;
+            border-radius: 50%;
+        }
+        
+        #box {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            border: 2px solid #000;
+            position: absolute;
+            /* left: 300px;
+            top: 100px; */
+            left: 3px;
+            top: 3px;
+            background: #fff;
+            box-shadow: 1px 1px 5px #000;
+        }
+        
+        #box .cap {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            margin-left: -10px;
+            margin-top: -10px;
+            background: #999;
+        }
+        
+        #box div {
+            transform-origin: center bottom;
+        }
+        
+        #box .hour {
+            width: 10px;
+            height: 80px;
+            background: #000;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            margin: -80px 0 0 -5px;
+            border-radius: 50% 50% 0 0;
+        }
+        
+        #box .min {
+            width: 8px;
+            height: 100px;
+            background: #282828;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            margin: -100px 0 0 -4px;
+            border-radius: 50% 50% 0 0;
+        }
+        
+        #box .sec {
+            width: 2px;
+            height: 120px;
+            background: #f00;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            margin: -120px 0 0 -1px;
+        }
+        
+        .scale {
+            width: 4px;
+            height: 10px;
+            background: #000;
+            position: absolute;
+            left: 50%;
+            margin-left: -2px;
+            transform-origin: center 150px;
+        }
+        /*整点刻度样式*/
+        
+        .bs {
+            width: 6px;
+            height: 18px;
+            background: #000;
+            position: absolute;
+            left: 50%;
+            margin-left: -3px;
+            transform-origin: center 150px;
+        }
+        /*分钟刻度样式*/
+        
+        #box span em {
+            margin-top: 20px;
+            width: 100px;
+            position: absolute;
+            left: 50%;
+            margin-left: -50px;
+            text-align: center;
+            font-style: normal;
+        }
+    </style>
+    <script>
+        window.onload = function() {
+            //获取元素
+            var oBox = document.getElementById('box');
+            var oH = document.querySelector('.hour');
+            var oM = document.querySelector('.min');
+            var oS = document.querySelector('.sec');
+
+            //生成刻度
+            var N = 60;
+            //创建元素
+            for (var i = 0; i < N; i++) {
+                var oSpan = document.createElement('span');
+                //将小时刻度与分钟刻度区分开并添加class
+                if (i % 5 == 0) { //整点刻度
+                    oSpan.className = 'bs';
+                    var num = i / 5 == 0 ? 12 : i / 5;
+                    oSpan.innerHTML = '<em>' + num + '<\/em>';
+                    //调整角度与钟框垂直
+                    oSpan.children[0].style.transform = 'rotate(' + -i * 6 + 'deg)';
+                } else { //分钟刻度
+                    oSpan.className = 'scale';
+                }
+                oBox.appendChild(oSpan);
+
+                oSpan.style.transform = 'rotate(' + 6 * i + 'deg)';
+            }
+
+            function clock() {
+                var oDate = new Date();
+                var h = oDate.getHours();
+                var m = oDate.getMinutes();
+                var s = oDate.getSeconds();
+                var ms = oDate.getMilliseconds();
+                oH.style.transform = 'rotate(' + (h * 30 + m / 60 * 30) + 'deg)';
+                oM.style.transform = 'rotate(' + (m * 6 + s / 60 * 6) + 'deg)';
+                oS.style.transform = 'rotate(' + (s * 6 + ms / 1000 * 6) + 'deg)';
+            }
+            //防止打开卡顿一下
+            clock();
+            //设置定时器
+            setInterval(clock, 30);
+
+            drag(oBox);
+            //拖拽
+            function drag(oDiv) {
+                oDiv.onmousedown = function(ev) {
+                    var oEvent = ev || event;
+                    //获取旧位置
+                    var disX = oEvent.clientX - oDiv.offsetLeft;
+                    var disY = oEvent.clientY - oDiv.offsetTop;
+                    document.onmousemove = function(ev) {
+                        var oEvent = ev || event;
+                        //设置新位置
+                        oDiv.style.left = oEvent.clientX - disX + 'px';
+                        oDiv.style.top = oEvent.clientY - disY + 'px';
+                    };
+                    document.onmouseup = function() {
+                        document.onmousemove = null;
+                        document.onmouseup = null;
+                        //释放捕获
+                        oDiv.releaseCapture && oDiv.releaseCapture();
+                    };
+                    //设置捕获
+                    oDiv.setCapture && oDiv.setCapture();
+                    return false;
+                };
+            };
+        };
+    </script>
+</head>
+
+<body>
+    <div id="box">
+        <!-- 时针 -->
+        <div class="hour"></div>
+        <!-- 分针 -->
+        <div class="min"></div>
+        <!-- 秒针 -->
+        <div class="sec"></div>
+        <!-- 圆点 -->
+        <div class="cap"></div>
+    </div>
+</body>
+
+</html>
